@@ -1,5 +1,5 @@
 <template>
-  <layout title="Contacts">
+  <div>
     <h1 class="mb-8 font-bold text-3xl">Contacts</h1>
     <div class="mb-6 flex justify-between items-center">
       <search-filter v-model="form.search" class="w-full max-w-sm mr-4" @reset="reset">
@@ -59,22 +59,21 @@
       </table>
     </div>
     <pagination :links="contacts.links" />
-  </layout>
+  </div>
 </template>
 
 <script>
 import _ from 'lodash'
-import { Inertia, InertiaLink } from 'inertia-vue'
 import Icon from '@/Shared/Icon'
 import Layout from '@/Shared/Layout'
 import Pagination from '@/Shared/Pagination'
 import SearchFilter from '@/Shared/SearchFilter'
 
 export default {
+  metaInfo: { title: 'Contacts' },
+  layout: (h, page) => h(Layout, [page]),
   components: {
-    InertiaLink,
     Icon,
-    Layout,
     Pagination,
     SearchFilter,
   },
@@ -94,7 +93,7 @@ export default {
     form: {
       handler: _.throttle(function() {
         let query = _.pickBy(this.form)
-        Inertia.replace(this.route('contacts', Object.keys(query).length ? query : { remember: 'forget' }).url())
+        this.$inertia.replace(this.route('contacts', Object.keys(query).length ? query : { remember: 'forget' }))
       }, 150),
       deep: true,
     },

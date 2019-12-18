@@ -1,5 +1,5 @@
 <template>
-  <layout title="Users">
+  <div>
     <h1 class="mb-8 font-bold text-3xl">Users</h1>
     <div class="mb-6 flex justify-between items-center">
       <search-filter v-model="form.search" class="w-full max-w-sm mr-4" @reset="reset">
@@ -31,6 +31,7 @@
         <tr v-for="user in users" :key="user.id" class="hover:bg-grey-lightest focus-within:bg-grey-lightest">
           <td class="border-t">
             <inertia-link class="px-6 py-4 flex items-center focus:text-indigo" :href="route('users.edit', user.id)">
+              <img v-if="user.photo" class="block w-5 h-5 rounded-full mr-2 -my-2" :src="user.photo">
               {{ user.name }}
               <icon v-if="user.deleted_at" name="trash" class="flex-no-shrink w-3 h-3 fill-grey ml-2" />
             </inertia-link>
@@ -56,21 +57,20 @@
         </tr>
       </table>
     </div>
-  </layout>
+  </div>
 </template>
 
 <script>
 import _ from 'lodash'
-import { Inertia, InertiaLink } from 'inertia-vue'
 import Icon from '@/Shared/Icon'
 import Layout from '@/Shared/Layout'
 import SearchFilter from '@/Shared/SearchFilter'
 
 export default {
+  metaInfo: { title: 'Users' },
+  layout: (h, page) => h(Layout, [page]),
   components: {
-    InertiaLink,
     Icon,
-    Layout,
     SearchFilter,
   },
   props: {
@@ -90,7 +90,7 @@ export default {
     form: {
       handler: _.throttle(function() {
         let query = _.pickBy(this.form)
-        Inertia.replace(this.route('users', Object.keys(query).length ? query : { remember: 'forget' }).url())
+        this.$inertia.replace(this.route('users', Object.keys(query).length ? query : { remember: 'forget' }))
       }, 150),
       deep: true,
     },

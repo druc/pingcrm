@@ -1,9 +1,9 @@
 <template>
-  <layout :title="form.fields.name">
+  <div>
     <h1 class="mb-8 font-bold text-3xl">
       <inertia-link class="text-indigo-light hover:text-indigo-dark" :href="route('organizations')">Organizations</inertia-link>
       <span class="text-indigo-light font-medium">/</span>
-      {{ form.fields.name }}
+      {{ form.name }}
     </h1>
     <trashed-message v-if="organization.deleted_at" class="mb-6" @restore="restore">
       This organization has been deleted.
@@ -11,22 +11,22 @@
     <div class="bg-white rounded shadow overflow-hidden max-w-lg">
       <form @submit.prevent="submit">
         <div class="p-8 -mr-6 -mb-8 flex flex-wrap">
-          <text-input v-model="form.fields.name" class="pr-6 pb-8 w-full lg:w-1/2" :error="form.errors.first('name')" label="Name" />
-          <text-input v-model="form.fields.email" class="pr-6 pb-8 w-full lg:w-1/2" :error="form.errors.first('email')" label="Email" />
-          <text-input v-model="form.fields.phone" class="pr-6 pb-8 w-full lg:w-1/2" :error="form.errors.first('phone')" label="Phone" />
-          <text-input v-model="form.fields.address" class="pr-6 pb-8 w-full lg:w-1/2" :error="form.errors.first('address')" label="Address" />
-          <text-input v-model="form.fields.city" class="pr-6 pb-8 w-full lg:w-1/2" :error="form.errors.first('city')" label="City" />
-          <text-input v-model="form.fields.region" class="pr-6 pb-8 w-full lg:w-1/2" :error="form.errors.first('region')" label="Province/State" />
-          <select-input v-model="form.fields.country" class="pr-6 pb-8 w-full lg:w-1/2" :error="form.errors.first('country')" label="Country">
+          <text-input v-model="form.name" :errors="$page.errors.name" class="pr-6 pb-8 w-full lg:w-1/2" label="Name" />
+          <text-input v-model="form.email" :errors="$page.errors.email" class="pr-6 pb-8 w-full lg:w-1/2" label="Email" />
+          <text-input v-model="form.phone" :errors="$page.errors.phone" class="pr-6 pb-8 w-full lg:w-1/2" label="Phone" />
+          <text-input v-model="form.address" :errors="$page.errors.address" class="pr-6 pb-8 w-full lg:w-1/2" label="Address" />
+          <text-input v-model="form.city" :errors="$page.errors.city" class="pr-6 pb-8 w-full lg:w-1/2" label="City" />
+          <text-input v-model="form.region" :errors="$page.errors.region" class="pr-6 pb-8 w-full lg:w-1/2" label="Province/State" />
+          <select-input v-model="form.country" :errors="$page.errors.country" class="pr-6 pb-8 w-full lg:w-1/2" label="Country">
             <option :value="null" />
             <option value="CA">Canada</option>
             <option value="US">United States</option>
           </select-input>
-          <text-input v-model="form.fields.postal_code" class="pr-6 pb-8 w-full lg:w-1/2" :error="form.errors.first('postal_code')" label="Postal code" />
+          <text-input v-model="form.postal_code" :errors="$page.errors.postal_code" class="pr-6 pb-8 w-full lg:w-1/2" label="Postal code" />
         </div>
         <div class="px-8 py-4 bg-grey-lightest border-t border-grey-lighter flex items-center">
           <button v-if="!organization.deleted_at" class="text-red hover:underline" tabindex="-1" type="button" @click="destroy">Delete Organization</button>
-          <loading-button :loading="form.sending" class="btn-indigo ml-auto" type="submit">Update Organization</loading-button>
+          <loading-button :loading="sending" class="btn-indigo ml-auto" type="submit">Update Organization</loading-button>
         </div>
       </form>
     </div>
@@ -66,12 +66,10 @@
         </tr>
       </table>
     </div>
-  </layout>
+  </div>
 </template>
 
 <script>
-import { Inertia, InertiaLink } from 'inertia-vue'
-import Form from '@/Utils/Form'
 import Icon from '@/Shared/Icon'
 import Layout from '@/Shared/Layout'
 import LoadingButton from '@/Shared/LoadingButton'
@@ -80,10 +78,12 @@ import TextInput from '@/Shared/TextInput'
 import TrashedMessage from '@/Shared/TrashedMessage'
 
 export default {
+  metaInfo() {
+    return { title: this.form.name }
+  },
+  layout: (h, page) => h(Layout, [page]),
   components: {
-    InertiaLink,
     Icon,
-    Layout,
     LoadingButton,
     SelectInput,
     TextInput,
@@ -92,9 +92,11 @@ export default {
   props: {
     organization: Object,
   },
+  remember: 'form',
   data() {
     return {
-      form: new Form({
+      sending: false,
+      form: {
         name: this.organization.name,
         email: this.organization.email,
         phone: this.organization.phone,
@@ -103,30 +105,23 @@ export default {
         region: this.organization.region,
         country: this.organization.country,
         postal_code: this.organization.postal_code,
-      }),
+      },
     }
   },
   methods: {
     submit() {
-      this.form.put({
-        url: this.route('organizations.update', this.organization.id).url(),
-        then: () => Inertia.visit(this.route('organizations')),
-      })
+      this.sending = true
+      this.$inertia.put(this.route('organizations.update', this.organization.id), this.form)
+        .then(() => this.sending = false)
     },
     destroy() {
       if (confirm('Are you sure you want to delete this organization?')) {
-        this.form.delete({
-          url: this.route('organizations.destroy', this.organization.id).url(),
-          then: () => Inertia.replace(this.route('organizations.edit', this.organization.id).url()),
-        })
+        this.$inertia.delete(this.route('organizations.destroy', this.organization.id))
       }
     },
     restore() {
       if (confirm('Are you sure you want to restore this organization?')) {
-        this.form.put({
-          url: this.route('organizations.restore', this.organization.id).url(),
-          then: () => Inertia.replace(this.route('organizations.edit', this.organization.id).url()),
-        })
+        this.$inertia.put(this.route('organizations.restore', this.organization.id))
       }
     },
   },

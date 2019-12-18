@@ -28,21 +28,22 @@
 </template>
 
 <script>
-import { InertiaLink } from 'inertia-vue'
 import Icon from '@/Shared/Icon'
 
 export default {
   components: {
-    InertiaLink,
     Icon,
+  },
+  props: {
+    url: String,
   },
   methods: {
     isUrl(...urls) {
       if (urls[0] === '') {
-        return location.pathname.substr(1) === ''
+        return this.url === ''
       }
 
-      return urls.filter(url => location.pathname.substr(1).startsWith(url)).length
+      return urls.filter(url => this.url.startsWith(url)).length
     },
   },
 }
