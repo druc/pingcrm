@@ -1,11 +1,15 @@
 <template>
   <div>
+    <div v-if="contact">
+      <contact-form-modal :contact="contact" :organizations="organizations"></contact-form-modal>
+    </div>
+
     <h1 class="mb-8 font-bold text-3xl">Contacts</h1>
     <div class="mb-6 flex justify-between items-center">
       <search-filter v-model="form.search" class="w-full max-w-md mr-4" @reset="reset">
         <label class="block text-gray-700">Trashed:</label>
         <select v-model="form.trashed" class="mt-1 w-full form-select">
-          <option :value="null" />
+          <option :value="null"/>
           <option value="with">With Trashed</option>
           <option value="only">Only Trashed</option>
         </select>
@@ -27,7 +31,7 @@
           <td class="border-t">
             <inertia-link class="px-6 py-4 flex items-center focus:text-indigo-500" :href="route('contacts.edit', contact.id)">
               {{ contact.name }}
-              <icon v-if="contact.deleted_at" name="trash" class="flex-shrink-0 w-3 h-3 fill-gray-400 ml-2" />
+              <icon v-if="contact.deleted_at" name="trash" class="flex-shrink-0 w-3 h-3 fill-gray-400 ml-2"/>
             </inertia-link>
           </td>
           <td class="border-t">
@@ -49,7 +53,7 @@
           </td>
           <td class="border-t w-px">
             <inertia-link class="px-4 flex items-center" :href="route('contacts.edit', contact.id)" tabindex="-1">
-              <icon name="cheveron-right" class="block w-6 h-6 fill-gray-400" />
+              <icon name="cheveron-right" class="block w-6 h-6 fill-gray-400"/>
             </inertia-link>
           </td>
         </tr>
@@ -58,52 +62,56 @@
         </tr>
       </table>
     </div>
-    <pagination :links="contacts.links" />
+    <pagination :links="contacts.links"/>
   </div>
 </template>
 
 <script>
-import Icon from '@/Shared/Icon'
-import Layout from '@/Shared/Layout'
-import mapValues from 'lodash/mapValues'
-import Pagination from '@/Shared/Pagination'
-import pickBy from 'lodash/pickBy'
-import SearchFilter from '@/Shared/SearchFilter'
-import throttle from 'lodash/throttle'
+  import Icon from '@/Shared/Icon'
+  import Layout from '@/Shared/Layout'
+  import mapValues from 'lodash/mapValues'
+  import Pagination from '@/Shared/Pagination'
+  import pickBy from 'lodash/pickBy'
+  import SearchFilter from '@/Shared/SearchFilter'
+  import throttle from 'lodash/throttle'
+  import ContactFormModal from './ContactFormModal'
 
-export default {
-  metaInfo: { title: 'Contacts' },
-  layout: Layout,
-  components: {
-    Icon,
-    Pagination,
-    SearchFilter,
-  },
-  props: {
-    contacts: Object,
-    filters: Object,
-  },
-  data() {
-    return {
+  export default {
+    metaInfo: {title: 'Contacts'},
+    layout: Layout,
+    components: {
+      Icon,
+      Pagination,
+      SearchFilter,
+      ContactFormModal
+    },
+    props: {
+      contacts: Object,
+      organizations: Array,
+      filters: Object,
+      contact: Object
+    },
+    data() {
+      return {
+        form: {
+          search: this.filters.search,
+          trashed: this.filters.trashed,
+        },
+      }
+    },
+    watch: {
       form: {
-        search: this.filters.search,
-        trashed: this.filters.trashed,
+        handler: throttle(function () {
+          let query = pickBy(this.form)
+          this.$inertia.replace(this.route('contacts', Object.keys(query).length ? query : {remember: 'forget'}))
+        }, 150),
+        deep: true,
       },
-    }
-  },
-  watch: {
-    form: {
-      handler: throttle(function() {
-        let query = pickBy(this.form)
-        this.$inertia.replace(this.route('contacts', Object.keys(query).length ? query : { remember: 'forget' }))
-      }, 150),
-      deep: true,
     },
-  },
-  methods: {
-    reset() {
-      this.form = mapValues(this.form, () => null)
+    methods: {
+      reset() {
+        this.form = mapValues(this.form, () => null)
+      },
     },
-  },
-}
+  }
 </script>

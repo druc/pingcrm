@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Contact;
+use App\Organization;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Request;
@@ -11,9 +12,18 @@ use Inertia\Inertia;
 
 class ContactsController extends Controller
 {
-    public function index()
+    public function index($id = null)
     {
+        $contact = null;
+
+        if ($id) {
+            $contact = Contact::findOrfail($id);
+        }
+
         return Inertia::render('Contacts/Index', [
+            'contact' => $contact,
+            'organizations' => Organization::all(),
+
             'filters' => Request::all('search', 'trashed'),
             'contacts' => Auth::user()->account->contacts()
                 ->with('organization')
