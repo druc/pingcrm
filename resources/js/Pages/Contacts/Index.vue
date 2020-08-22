@@ -1,8 +1,6 @@
 <template>
   <div>
-    <div v-if="contact">
-      <contact-form-modal :contact="contact" :organizations="organizations"></contact-form-modal>
-    </div>
+    <contact-form-modal v-if="showContactModal" :contact="contact" :organizations="organizations"></contact-form-modal>
 
     <h1 class="mb-8 font-bold text-3xl">Contacts</h1>
     <div class="mb-6 flex justify-between items-center">
@@ -87,9 +85,10 @@
     },
     props: {
       contacts: Object,
-      organizations: Array,
       filters: Object,
-      contact: Object
+      organizations: Array,
+      contact: Object,
+      showContactModal: Boolean
     },
     data() {
       return {

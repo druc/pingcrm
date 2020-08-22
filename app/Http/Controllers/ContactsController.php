@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Contact;
-use App\Organization;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Request;
@@ -12,18 +11,9 @@ use Inertia\Inertia;
 
 class ContactsController extends Controller
 {
-    public function index($id = null)
+    public function index()
     {
-        $contact = null;
-
-        if ($id) {
-            $contact = Contact::findOrfail($id);
-        }
-
         return Inertia::render('Contacts/Index', [
-            'contact' => $contact,
-            'organizations' => Organization::all(),
-
             'filters' => Request::all('search', 'trashed'),
             'contacts' => Auth::user()->account->contacts()
                 ->with('organization')
@@ -45,13 +35,14 @@ class ContactsController extends Controller
 
     public function create()
     {
-        return Inertia::render('Contacts/Create', [
+        return $this->index()->with([
+            'showContactModal' => true,
             'organizations' => Auth::user()->account
                 ->organizations()
                 ->orderBy('name')
                 ->get()
                 ->map
-                ->only('id', 'name'),
+                ->only('id', 'name')
         ]);
     }
 
@@ -61,9 +52,12 @@ class ContactsController extends Controller
             Request::validate([
                 'first_name' => ['required', 'max:50'],
                 'last_name' => ['required', 'max:50'],
-                'organization_id' => ['nullable', Rule::exists('organizations', 'id')->where(function ($query) {
-                    $query->where('account_id', Auth::user()->account_id);
-                })],
+                'organization_id' => [
+                    'nullable',
+                    Rule::exists('organizations', 'id')->where(function ($query) {
+                        $query->where('account_id', Auth::user()->account_id);
+                    })
+                ],
                 'email' => ['nullable', 'max:50', 'email'],
                 'phone' => ['nullable', 'max:50'],
                 'address' => ['nullable', 'max:150'],
@@ -79,7 +73,8 @@ class ContactsController extends Controller
 
     public function edit(Contact $contact)
     {
-        return Inertia::render('Contacts/Edit', [
+        return self::index()->with([
+            'showContactModal' => true,
             'contact' => [
                 'id' => $contact->id,
                 'first_name' => $contact->first_name,
@@ -108,9 +103,12 @@ class ContactsController extends Controller
             Request::validate([
                 'first_name' => ['required', 'max:50'],
                 'last_name' => ['required', 'max:50'],
-                'organization_id' => ['nullable', Rule::exists('organizations', 'id')->where(function ($query) {
-                    $query->where('account_id', Auth::user()->account_id);
-                })],
+                'organization_id' => [
+                    'nullable',
+                    Rule::exists('organizations', 'id')->where(function ($query) {
+                        $query->where('account_id', Auth::user()->account_id);
+                    })
+                ],
                 'email' => ['nullable', 'max:50', 'email'],
                 'phone' => ['nullable', 'max:50'],
                 'address' => ['nullable', 'max:150'],
