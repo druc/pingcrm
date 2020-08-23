@@ -29,7 +29,7 @@ class ContactsController extends Controller
                         'deleted_at' => $contact->deleted_at,
                         'organization' => $contact->organization ? $contact->organization->only('name') : null,
                     ];
-                }),
+                })
         ]);
     }
 
@@ -73,7 +73,7 @@ class ContactsController extends Controller
 
     public function edit(Contact $contact)
     {
-        return self::index()->with([
+        return Inertia::decorate(ContactsController::index(), [
             'showContactModal' => true,
             'contact' => [
                 'id' => $contact->id,
@@ -94,7 +94,7 @@ class ContactsController extends Controller
                 ->get()
                 ->map
                 ->only('id', 'name'),
-        ]);
+        ], route('contacts'));
     }
 
     public function update(Contact $contact)
@@ -119,7 +119,7 @@ class ContactsController extends Controller
             ])
         );
 
-        return Redirect::back()->with('success', 'Contact updated.');
+        return Inertia::back();
     }
 
     public function destroy(Contact $contact)

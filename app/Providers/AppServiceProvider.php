@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
+use Inertia\ResponseFactory;
 use League\Glide\Server;
 
 class AppServiceProvider extends ServiceProvider
@@ -25,6 +26,23 @@ class AppServiceProvider extends ServiceProvider
         $this->registerInertia();
         $this->registerGlide();
         $this->registerLengthAwarePaginator();
+
+        ResponseFactory::macro('decorate', function ($response, $data, $defaultRedirect) {
+            if (false and request()->hasHeader('X-Inertia')) {
+                request()->headers->set('X-Inertia-Partial-Data', implode(',', array_merge(['referer'], array_keys($data))));
+                request()->headers->set('X-Inertia-Partial-Component', $response->toResponse(request())->getData()->component);
+            }
+
+            session()->put('X-Inertia-Referer', request()->headers->get('referer') ?? $defaultRedirect);
+
+            return $response->with(array_merge([
+                'referer' => session('X-Inertia-Referer')
+            ], $data));
+        });
+
+        ResponseFactory::macro('back', function () {
+            return redirect(session('X-Inertia-Referer'));
+        });
     }
 
     public function registerInertia()
@@ -58,7 +76,7 @@ class AppServiceProvider extends ServiceProvider
             'errors' => function () {
                 return Session::get('errors')
                     ? Session::get('errors')->getBag('default')->getMessages()
-                    : (object) [];
+                    : (object)[];
             },
         ]);
     }

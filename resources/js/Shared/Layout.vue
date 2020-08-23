@@ -1,6 +1,8 @@
 <template>
   <div>
     <portal-target name="dropdown" slim />
+    <portal-target name="modal" />
+
     <div class="flex flex-col">
       <div class="h-screen flex flex-col" @click="hideDropdownMenus">
         <div class="md:flex flex-shrink-0">
