@@ -4,7 +4,6 @@ namespace App\Providers;
 
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\UrlWindow;
-use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;
@@ -34,7 +33,11 @@ class AppServiceProvider extends ServiceProvider
         });
 
         ResponseFactory::macro('decorate', function (Response $response, array $data, string $redirect) {
-            $uri = request()->headers->get('referer') ?? $redirect;
+            $uri = request()->headers->get('referer');
+
+            if (!$uri || $uri === request()->fullUrl()) {
+                $uri = $redirect;
+            }
 
             session()->put('X-Inertia-Referer', $uri);
 
@@ -54,7 +57,11 @@ class AppServiceProvider extends ServiceProvider
                 request()->headers->set('X-Inertia-Partial-Component', $response->component());
             }
 
-            $uri = request()->headers->get('referer') ?? $redirect;
+            $uri = request()->headers->get('referer');
+
+            if (!$uri || $uri === request()->fullUrl()) {
+                $uri = $redirect;
+            }
 
             session()->put('X-Inertia-Referer', $uri);
 

@@ -6,10 +6,20 @@
           <div class="p-8 -mr-6 -mb-8 flex flex-wrap">
             <text-input v-model="form.first_name" :errors="$page.errors.first_name" class="pr-6 pb-8 w-full lg:w-1/2" label="First name"/>
             <text-input v-model="form.last_name" :errors="$page.errors.last_name" class="pr-6 pb-8 w-full lg:w-1/2" label="Last name"/>
-            <select-input v-model="form.organization_id" :errors="$page.errors.organization_id" class="pr-6 pb-8 w-full lg:w-1/2" label="Organization">
-              <option :value="null"/>
-              <option v-for="organization in organizations" :key="organization.id" :value="organization.id">{{ organization.name }}</option>
-            </select-input>
+            <div class="pr-6 pb-8 w-full lg:w-1/2">
+              <label class="form-label" for="organization_id">Organization:</label>
+              <multiselect
+                  id="organization_id"
+                  v-model="form.organization_id"
+                  @search-change="searchOrganization"
+                  label="name"
+                  :options="organizations"></multiselect>
+            </div>
+
+            <!--            <select-input v-model="form.organization_id" :errors="$page.errors.organization_id" class="pr-6 pb-8 w-full lg:w-1/2" label="Organization">-->
+            <!--              <option :value="null"/>-->
+            <!--              <option v-for="organization in organizations" :key="organization.id" :value="organization.id">{{ organization.name }}</option>-->
+            <!--            </select-input>-->
             <text-input v-model="form.email" :errors="$page.errors.email" class="pr-6 pb-8 w-full lg:w-1/2" label="Email"/>
             <text-input v-model="form.phone" :errors="$page.errors.phone" class="pr-6 pb-8 w-full lg:w-1/2" label="Phone"/>
             <text-input v-model="form.address" :errors="$page.errors.address" class="pr-6 pb-8 w-full lg:w-1/2" label="Address"/>
@@ -35,10 +45,12 @@
   import LoadingButton from '@/Shared/LoadingButton'
   import SelectInput from '@/Shared/SelectInput'
   import TextInput from '@/Shared/TextInput'
+  import Multiselect from 'vue-multiselect'
 
   export default {
     components: {
       LoadingButton,
+      Multiselect,
       SelectInput,
       TextInput,
     },
@@ -66,8 +78,15 @@
       }
     },
     methods: {
+      searchOrganization(search) {
+        // throttle(function () {
+        //   let query = pickBy(this.form)
+        //   this.$inertia.replace(this.route('contacts', Object.keys(query).length ? query : {remember: 'forget'}))
+        // }, 150)
+        this.$inertia.replace(this.route('contacts.edit', {contact: this.contact.id, search: search}))
+      },
       closeModal() {
-        this.$inertia.replace(this.$page.referer, {preserveScroll: true});
+        this.$inertia.replace(this.$page.referer, {preserveScroll: true})
       },
       submit() {
         this.sending = true

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Contact;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Request;
 use Illuminate\Validation\Rule;
@@ -75,7 +76,7 @@ class ContactsController extends Controller
 
     public function edit(Contact $contact)
     {
-        return Inertia::decorate($this->index(), [
+        return Inertia::decorateWithoutOnly($this->index(), [
             'showContactModal' => true,
             'contact' => [
                 'id' => $contact->id,
@@ -93,6 +94,8 @@ class ContactsController extends Controller
             ],
             'organizations' => Auth::user()->account->organizations()
                 ->orderBy('name')
+                ->filter(Request::only('search'))
+                ->limit(3)
                 ->get()
                 ->map
                 ->only('id', 'name'),
