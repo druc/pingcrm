@@ -33,19 +33,19 @@
             </inertia-link>
           </td>
           <td class="border-t">
-            <inertia-link class="px-6 py-4 flex items-center" :href="route('contacts.edit', contact.id)" tabindex="-1" preserve-scroll>
+            <inertia-link class="px-6 py-4 flex items-center" :href="route('contacts.edit', contact.id)" tabindex="-1" preserve-scroll :only="['referer','showContactModal', 'organizations','contact']">
               <div v-if="contact.organization">
                 {{ contact.organization.name }}
               </div>
             </inertia-link>
           </td>
           <td class="border-t">
-            <inertia-link class="px-6 py-4 flex items-center" :href="route('contacts.edit', contact.id)" tabindex="-1" preserve-scroll>
+            <inertia-link class="px-6 py-4 flex items-center" :href="route('contacts.edit', contact.id)" tabindex="-1" preserve-scroll :only="['referer','showContactModal', 'organizations','contact']">
               {{ contact.city }}
             </inertia-link>
           </td>
           <td class="border-t">
-            <inertia-link class="px-6 py-4 flex items-center" :href="route('contacts.edit', contact.id)" tabindex="-1" preserve-scroll>
+            <inertia-link class="px-6 py-4 flex items-center" :href="route('contacts.edit', contact.id)" tabindex="-1" preserve-scroll :only="['referer','showContactModal', 'organizations','contact']">
               {{ contact.phone }}
             </inertia-link>
           </td>

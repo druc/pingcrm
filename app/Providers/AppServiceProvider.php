@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\UrlWindow;
+use Illuminate\Routing\Router;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Request;
@@ -28,8 +29,6 @@ class AppServiceProvider extends ServiceProvider
         $this->registerLengthAwarePaginator();
 
         ResponseFactory::macro('decorate', function ($response, $data, $defaultRedirect) {
-
-
 //            if (false && request()->hasHeader('X-Inertia')) {
 //                request()->headers->set('X-Inertia-Partial-Data', implode(',', array_merge(['referer'], array_keys($data))));
 //                request()->headers->set('X-Inertia-Partial-Component', $response->toResponse(request())->getData()->component);
@@ -43,7 +42,31 @@ class AppServiceProvider extends ServiceProvider
         });
 
         ResponseFactory::macro('back', function () {
-            return redirect(session('X-Inertia-Referer'));
+            return session('X-Inertia-Referer') ? redirect(session('X-Inertia-Referer')) : redirect()->back();
+        });
+
+        ResponseFactory::macro('partial', function ($data, $uri) {
+            $response = app(Router::class)->getRoutes()->match(\Illuminate\Http\Request::create($uri))->run();
+
+            if (request()->hasHeader('X-Inertia')) {
+                request()->headers->set('X-Inertia-Partial-Data', implode(',', array_merge(['referer'], array_keys($data))));
+                request()->headers->set('X-Inertia-Partial-Component', $response->toResponse(request())->getData()->component);
+            }
+
+            $uri = request()->headers->get('referer') ?? $uri;
+            session()->put('X-Inertia-Referer', $uri);
+
+            $path = parse_url($uri);
+
+            if ($path && isset($path['query'])) {
+                parse_str($path['query'], $params);
+                request()->merge($params);
+            }
+
+            return $response
+                ->with(array_merge([
+                    'referer' => $uri
+                ], $data));
         });
     }
 

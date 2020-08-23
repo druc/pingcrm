@@ -68,7 +68,7 @@
     },
     methods: {
       closeModal() {
-        this.$inertia.replace(this.$page.referer, {preserveState: true});
+        this.$inertia.replace(this.$page.referer, {preserveScroll: true});
       },
       submit() {
         this.sending = true
