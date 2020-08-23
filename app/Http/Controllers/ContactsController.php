@@ -73,7 +73,12 @@ class ContactsController extends Controller
 
     public function edit(Contact $contact)
     {
-        return Inertia::decorate(ContactsController::index(), [
+        if(request()->headers->get('referer')) {
+            parse_str(parse_url(request()->headers->get('referer'))['query'], $params);
+            request()->merge($params);
+        }
+
+        return Inertia::decorate(route('contacts'), [
             'showContactModal' => true,
             'contact' => [
                 'id' => $contact->id,

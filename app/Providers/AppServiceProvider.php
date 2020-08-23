@@ -28,10 +28,12 @@ class AppServiceProvider extends ServiceProvider
         $this->registerLengthAwarePaginator();
 
         ResponseFactory::macro('decorate', function ($response, $data, $defaultRedirect) {
-            if (false and request()->hasHeader('X-Inertia')) {
-                request()->headers->set('X-Inertia-Partial-Data', implode(',', array_merge(['referer'], array_keys($data))));
-                request()->headers->set('X-Inertia-Partial-Component', $response->toResponse(request())->getData()->component);
-            }
+
+
+//            if (false && request()->hasHeader('X-Inertia')) {
+//                request()->headers->set('X-Inertia-Partial-Data', implode(',', array_merge(['referer'], array_keys($data))));
+//                request()->headers->set('X-Inertia-Partial-Component', $response->toResponse(request())->getData()->component);
+//            }
 
             session()->put('X-Inertia-Referer', request()->headers->get('referer') ?? $defaultRedirect);
 
