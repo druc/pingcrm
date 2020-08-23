@@ -15,21 +15,23 @@ class ContactsController extends Controller
     {
         return Inertia::render('Contacts/Index', [
             'filters' => Request::all('search', 'trashed'),
-            'contacts' => Auth::user()->account->contacts()
-                ->with('organization')
-                ->orderByName()
-                ->filter(Request::only('search', 'trashed'))
-                ->paginate()
-                ->transform(function ($contact) {
-                    return [
-                        'id' => $contact->id,
-                        'name' => $contact->name,
-                        'phone' => $contact->phone,
-                        'city' => $contact->city,
-                        'deleted_at' => $contact->deleted_at,
-                        'organization' => $contact->organization ? $contact->organization->only('name') : null,
-                    ];
-                })
+            'contacts' => function () {
+                return Auth::user()->account->contacts()
+                    ->with('organization')
+                    ->orderByName()
+                    ->filter(Request::only('search', 'trashed'))
+                    ->paginate()
+                    ->transform(function ($contact) {
+                        return [
+                            'id' => $contact->id,
+                            'name' => $contact->name,
+                            'phone' => $contact->phone,
+                            'city' => $contact->city,
+                            'deleted_at' => $contact->deleted_at,
+                            'organization' => $contact->organization ? $contact->organization->only('name') : null,
+                        ];
+                    });
+            }
         ]);
     }
 
@@ -73,36 +75,7 @@ class ContactsController extends Controller
 
     public function edit(Contact $contact)
     {
-        return Inertia::partial([
-            'showContactModal' => true,
-            'contact' => [
-                'id' => $contact->id,
-                'first_name' => $contact->first_name,
-                'last_name' => $contact->last_name,
-                'organization_id' => $contact->organization_id,
-                'email' => $contact->email,
-                'phone' => $contact->phone,
-                'address' => $contact->address,
-                'city' => $contact->city,
-                'region' => $contact->region,
-                'country' => $contact->country,
-                'postal_code' => $contact->postal_code,
-                'deleted_at' => $contact->deleted_at,
-            ],
-            'organizations' => Auth::user()->account->organizations()
-                ->orderBy('name')
-                ->get()
-                ->map
-                ->only('id', 'name'),
-        ], route('contacts'));
-
-
-        if(request()->headers->get('referer')) {
-            parse_str(parse_url(request()->headers->get('referer'))['query'], $params);
-            request()->merge($params);
-        }
-
-        return Inertia::decorate(route('contacts'), [
+        return Inertia::decorate($this->index(), [
             'showContactModal' => true,
             'contact' => [
                 'id' => $contact->id,
@@ -148,7 +121,7 @@ class ContactsController extends Controller
             ])
         );
 
-        return Inertia::back();
+        return Inertia::back()->with('success', 'Yay!');
     }
 
     public function destroy(Contact $contact)

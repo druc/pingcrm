@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Session;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
+use Inertia\Response;
 use Inertia\ResponseFactory;
 use League\Glide\Server;
 
@@ -28,32 +29,13 @@ class AppServiceProvider extends ServiceProvider
         $this->registerGlide();
         $this->registerLengthAwarePaginator();
 
-        ResponseFactory::macro('decorate', function ($response, $data, $defaultRedirect) {
-//            if (false && request()->hasHeader('X-Inertia')) {
-//                request()->headers->set('X-Inertia-Partial-Data', implode(',', array_merge(['referer'], array_keys($data))));
-//                request()->headers->set('X-Inertia-Partial-Component', $response->toResponse(request())->getData()->component);
-//            }
-
-            session()->put('X-Inertia-Referer', request()->headers->get('referer') ?? $defaultRedirect);
-
-            return $response->with(array_merge([
-                'referer' => session('X-Inertia-Referer')
-            ], $data));
-        });
-
         ResponseFactory::macro('back', function () {
             return session('X-Inertia-Referer') ? redirect(session('X-Inertia-Referer')) : redirect()->back();
         });
 
-        ResponseFactory::macro('partial', function ($data, $uri) {
-            $response = app(Router::class)->getRoutes()->match(\Illuminate\Http\Request::create($uri))->run();
+        ResponseFactory::macro('decorate', function (Response $response, array $data, string $redirect) {
+            $uri = request()->headers->get('referer') ?? $redirect;
 
-            if (request()->hasHeader('X-Inertia')) {
-                request()->headers->set('X-Inertia-Partial-Data', implode(',', array_merge(['referer'], array_keys($data))));
-                request()->headers->set('X-Inertia-Partial-Component', $response->toResponse(request())->getData()->component);
-            }
-
-            $uri = request()->headers->get('referer') ?? $uri;
             session()->put('X-Inertia-Referer', $uri);
 
             $path = parse_url($uri);
@@ -63,10 +45,27 @@ class AppServiceProvider extends ServiceProvider
                 request()->merge($params);
             }
 
-            return $response
-                ->with(array_merge([
-                    'referer' => $uri
-                ], $data));
+            return $response->with(array_merge(['referer' => $uri], $data));
+        });
+
+        ResponseFactory::macro('decorateWithoutOnly', function (Response $response, array $data, string $redirect) {
+            if (request()->hasHeader('X-Inertia')) {
+                request()->headers->set('X-Inertia-Partial-Data', implode(',', array_merge(['referer'], array_keys($data))));
+                request()->headers->set('X-Inertia-Partial-Component', $response->component());
+            }
+
+            $uri = request()->headers->get('referer') ?? $redirect;
+
+            session()->put('X-Inertia-Referer', $uri);
+
+            $path = parse_url($uri);
+
+            if ($path && isset($path['query'])) {
+                parse_str($path['query'], $params);
+                request()->merge($params);
+            }
+
+            return $response->with(array_merge(['referer' => $uri], $data));
         });
     }
 

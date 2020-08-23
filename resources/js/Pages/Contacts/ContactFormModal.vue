@@ -1,7 +1,6 @@
 <template>
   <portal to="modal">
-<!--    <div style="position: fixed; top: 0; right: 0; left: 0; bottom: 0; z-index: 99998; background: black; opacity: .2"-->
-    <div @click="closeModal" class="fixed top-0 p-8 w-full h-screen z-50" style="background-color: hsla(0, 0%, 0%, .5)">
+    <div @click="closeModal" class="fixed top-0 p-8 w-full h-full z-50 overflow-scroll" style="background-color: hsla(0, 0%, 0%, .5)">
       <div @click.stop class="bg-white rounded shadow overflow-hidden max-w-3xl mx-auto">
         <form @submit.prevent="submit">
           <div class="p-8 -mr-6 -mb-8 flex flex-wrap">
